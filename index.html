@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id" data-publik>
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -11,6 +11,10 @@
 
   <!-- CSS Eksternal -->
   <link rel="stylesheet" href="css/style.css" />
+
+<!-- data -> fungsi bersama -> logika halaman -->
+<script src="js/dataBahanAjar.js"></script>
+<script src="js/common.js"></script>
 </head>
 <body>
 
@@ -62,7 +66,7 @@
          role="alertdialog" aria-modal="true" aria-labelledby="pesanJudul">
       <h2 id="pesanJudul"></h2>
       <p  id="pesanIsi"></p>
-      <button type="button" class="btn-login" data-close="modalPesan">OK</button>
+      <button type="button" class="btn-login" id="pesanOk">OK</button>
     </div>
   </div>
 
@@ -109,9 +113,6 @@
 
 
   <!-- ===== JavaScript Eksternal ===== -->
-  <!-- data.js harus dimuat DULUAN agar dataPengguna tersedia untuk script.js -->
-  <script src="js/data.js"></script>
-  <script src="js/script.js"></script>
-
+<script src="js/login.js"></script>
 </body>
 </html>

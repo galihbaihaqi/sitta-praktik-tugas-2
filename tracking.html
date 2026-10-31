@@ -1,107 +1,230 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Tracking Pengiriman — SITTA</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tracking Pengiriman — SITTA Universitas Terbuka</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+
+<!-- data -> fungsi bersama (termasuk penjaga login) -->
+<script src="js/dataBahanAjar.js"></script>
+<script src="js/common.js"></script>
 </head>
 <body class="tracking-page">
 
-  <!-- ===== Header: top bar + navigasi (sama dengan dashboard) ===== -->
-  <header>
-    <div class="topbar">
+<!-- Seluruh halaman menjadi area aplikasi Vue -->
+<div id="app" v-cloak>
 
-      <!-- Kiri: pengumuman -->
-      <div class="topbar-left">
-        <span class="topbar-icon" aria-hidden="true">📢</span>
-        <span>Sistem Informasi Tiras dan Transaksi Bahan Ajar UT</span>
-      </div>
-
-      <!-- Tengah: pencarian (Enter -> halaman Informasi Bahan Ajar) -->
-      <div class="topbar-search" role="search">
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M21 20l-4.35-4.35A8 8 0 1 0 15.65 15.65L20 20l1 1Zm-13-4a6 6 0 1 1 0-12 6 6 0 0 1 0 12Z"/>
-        </svg>
-        <input type="text" id="topCari" placeholder="Cari bahan ajar lalu tekan Enter" aria-label="Cari bahan ajar" />
-      </div>
-
-      <!-- Kanan: info pengguna + logout -->
-      <div class="topbar-right">
-        <div class="topbar-user">
-          <div class="topbar-avatar" id="topAvatar">A</div>
-          <span id="topNama">Pengguna</span>
-        </div>
-        <button type="button" class="topbar-logout" onclick="logout()">Keluar</button>
-      </div>
-
+<header>
+  <div class="topbar">
+    <div class="topbar-left">
+      <span class="topbar-icon" aria-hidden="true">📢</span>
+      <span>Sistem Informasi Tiras dan Transaksi Bahan Ajar UT</span>
     </div>
+    <div class="topbar-search" role="search">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M21 20l-4.35-4.35A8 8 0 1 0 15.65 15.65L20 20l1 1Zm-13-4a6 6 0 1 1 0-12 6 6 0 0 1 0 12Z"/>
+      </svg>
+      <input type="text" v-model="topCari" @keyup.enter="cariDariTopbar" placeholder="Cari bahan ajar lalu tekan Enter" aria-label="Cari bahan ajar" />
+    </div>
+    <div class="topbar-right">
+      <div class="topbar-user">
+        <div class="topbar-avatar">{{ inisial }}</div>
+        <span>{{ pengguna }}</span>
+      </div>
+      <button type="button" class="topbar-logout" @click="logout">Keluar</button>
+    </div>
+  </div>
 
-    <!-- =====================================================
-         NAVBAR (putih)
-         ===================================================== -->
-    <nav class="navbar" aria-label="Menu utama">
+  <nav class="navbar" aria-label="Menu utama">
+    <a href="dashboard.html" class="navbar-brand">
+      <img src="img/Logo UT.jpg" alt="Logo Universitas Terbuka" class="brand-logo">
+      <div class="brand-text">
+        <span class="brand-name">Universitas Terbuka</span>
+        <span class="brand-sub">Making Higher Education Open to All</span>
+      </div>
+    </a>
 
-      <!-- Logo kiri -->
-      <a href="dashboard.html" class="navbar-brand">
-        <img
-        src="img/Logo UT.jpg"
-        alt="Logo Universitas Terbuka"
-        class="brand-logo"></img>
-        <div class="brand-text">
-          <span class="brand-name">Universitas Terbuka</span>
-          <span class="brand-sub">Making Higher Education Open to All</span>
+    <button type="button" class="toggle" :aria-expanded="String(menuOpen)" aria-label="Buka menu" @click="menuOpen = !menuOpen">&#9776;</button>
+
+    <ul class="menu" :class="{ open: menuOpen }" id="menu">
+      <li><a href="stok.html">Informasi Bahan Ajar</a></li>
+      <li><a href="tracking.html" class="active" aria-current="page">Tracking Pengiriman</a></li>
+      <li class="dropdown" :class="{ open: dropdownOpen }">
+        <button type="button" class="drop-btn" aria-haspopup="true" :aria-expanded="String(dropdownOpen)" @click.stop="dropdownOpen = !dropdownOpen">
+          Laporan &#9662;
+        </button>
+        <ul class="dropdown-menu">
+          <li><a href="dashboard.html#monitoring">Monitoring Progress DO Bahan Ajar</a></li>
+          <li><a href="dashboard.html#rekap">Rekap Bahan Ajar</a></li>
+        </ul>
+      </li>
+      <li><a href="dashboard.html#histori">Histori Transaksi Bahan Ajar</a></li>
+    </ul>
+
+    <a href="https://myut.ut.ac.id/auth/login" class="btn-myut" target="_blank" rel="noopener noreferrer">MyUT</a>
+  </nav>
+</header>
+
+<main>
+  <a class="back" href="dashboard.html">&larr; Kembali ke Dashboard</a>
+  <h1>Tracking Pengiriman</h1>
+
+  <!-- ===== Cari DO ===== -->
+  <form class="search" @submit.prevent="cari" novalidate>
+    <label for="noDO">No. DO/Billing</label>
+    <input type="text" id="noDO" v-model="kodeCari" placeholder="Contoh: DO2025-001" autocomplete="off">
+    <button type="submit" class="btn-cari" :disabled="!kodeCari.trim()">Cari</button>
+  </form>
+  <p class="hint">Contoh nomor untuk uji coba: <code>DO2025-001</code>. DO baru yang Anda buat di bawah juga bisa dicari.</p>
+
+  <div v-if="pesan" class="pesan" role="status">{{ pesan }}</div>
+
+  <!-- ===== Hasil pencarian ===== -->
+  <div id="hasil" aria-live="polite">
+    <template v-if="hasil">
+      <section class="kartu">
+        <div class="nama">{{ hasil.nama }}</div>
+        <div class="tgl">{{ tanggalIndo(hasil.tanggalKirim) }}</div>
+        <div class="nim">No. DO {{ hasil.noDO }}</div>
+        <div></div>
+        <div class="rute" v-if="lokasiPemesan">{{ lokasiPemesan }}</div>
+      </section>
+
+      <section class="panel">
+        <h2>Status Pengiriman</h2>
+        <div class="status-row">
+          <span class="badge" :class="statusHasil.nada">{{ statusHasil.label }}</span>
+          <span class="persen">{{ statusHasil.persen }}%</span>
         </div>
-      </a>
+        <div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" :aria-valuenow="statusHasil.persen">
+          <div :class="statusHasil.nada" :style="{ width: statusHasil.persen + '%' }"></div>
+        </div>
 
-      <!-- Hamburger (mobile) -->
-      <button type="button" class="toggle" id="toggle" aria-label="Buka menu" aria-expanded="false">&#9776;</button>
+        <dl class="detail">
+          <div><dt>No. Delivery Order</dt><dd>{{ hasil.noDO }}</dd></div>
+          <div><dt>NIM</dt><dd>{{ hasil.nim }}</dd></div>
+          <div><dt>Ekspedisi</dt><dd>{{ hasil.ekspedisi }}</dd></div>
+          <div><dt>Tanggal Kirim</dt><dd>{{ tanggalIndo(hasil.tanggalKirim) }}</dd></div>
+          <div><dt>Jenis Paket</dt><dd>{{ paketHasil }}</dd></div>
+          <div><dt>Total Pembayaran</dt><dd>{{ formatRupiah(hasil.total) }}</dd></div>
+        </dl>
+      </section>
 
-      <!-- Menu -->
-      <ul class="menu" id="menu">
-        <li><a href="stok.html">Informasi Bahan Ajar</a></li>
-        <li><a href="tracking.html" class="active" aria-current="page">Tracking Pengiriman</a></li>
+      <section class="panel">
+        <h2>Perjalanan Paket</h2>
+        <ul class="timeline">
+          <li v-for="(p, i) in perjalananTerbaru" :key="i">
+            <div class="ket">{{ p.keterangan }}</div>
+            <div class="waktu">{{ p.waktu }}</div>
+          </li>
+        </ul>
+      </section>
+    </template>
 
-        <!-- Dropdown Laporan -->
-        <li class="dropdown" id="laporan">
-          <button type="button" class="drop-btn"
-                  aria-haspopup="true" aria-expanded="false">
-            Laporan &#9662;
-          </button>
-          <ul class="dropdown-menu">
-            <li><a href="dashboard.html#monitoring">Monitoring Progress DO Bahan Ajar</a></li>
-            <li><a href="dashboard.html#rekap">Rekap Bahan Ajar</a></li>
-          </ul>
-        </li>
+    <div class="error" role="alert" v-else-if="sudahCari">
+      Data dengan nomor DO <strong>{{ kodeHasil }}</strong> tidak ditemukan. Periksa kembali nomornya.
+    </div>
+  </div>
 
-        <li><a href="dashboard.html#histori">Histori Transaksi Bahan Ajar</a></li>
-      </ul>
+  <div class="grid-2">
+    <!-- ===== Form DO baru ===== -->
+    <section class="panel-tambah" aria-labelledby="judulDO">
+      <h2 id="judulDO">Tambah Delivery Order baru</h2>
+      <form @submit.prevent="simpan" novalidate>
+        <div class="form-grid">
+          <div class="field">
+            <label for="dNo">Nomor DO (otomatis)</label>
+            <input type="text" id="dNo" :value="nomorDOBerikutnya" readonly>
+          </div>
 
-      <!-- Tombol kanan seperti "MyUT" -->
-      <a href="index.html" class="btn-myut">MyUT</a>
+          <div class="field">
+            <label for="dNim">NIM</label>
+            <input type="text" id="dNim" v-model="form.nim" :class="{ invalid: errors.nim }" inputmode="numeric" placeholder="Contoh: 123456789" autocomplete="off">
+            <div class="field-err" v-if="errors.nim">{{ errors.nim }}</div>
+          </div>
 
-    </nav>
-  </header>
+          <div class="field lebar">
+            <label for="dNama">Nama</label>
+            <input type="text" id="dNama" v-model="form.nama" :class="{ invalid: errors.nama }" placeholder="Nama mahasiswa" autocomplete="off">
+            <div class="field-err" v-if="errors.nama">{{ errors.nama }}</div>
+          </div>
 
-  <main>
-    <a class="back" href="dashboard.html">&larr; Kembali ke Dashboard</a>
-    <h1>Tracking Pengiriman</h1>
+          <div class="field">
+            <label for="dEkspedisi">Ekspedisi</label>
+            <select id="dEkspedisi" v-model="form.ekspedisi" :class="{ invalid: errors.ekspedisi }">
+              <option value="" disabled>Pilih ekspedisi</option>
+              <option v-for="p in pengirimanList" :key="p.kode" :value="'JNE ' + p.nama">JNE {{ p.nama }}</option>
+            </select>
+            <div class="field-err" v-if="errors.ekspedisi">{{ errors.ekspedisi }}</div>
+          </div>
 
-    <!-- ===== Form pencarian ===== -->
-    <form class="search" id="formCari" novalidate>
-      <label for="noDO">No. DO/Billing</label>
-      <input type="text" id="noDO" inputmode="numeric" autocomplete="off">
-      <button type="submit" class="btn-cari">Cari</button>
-    </form>
-    <p class="hint">Contoh nomor untuk uji coba: <code>2023001234</code> (dalam perjalanan) dan <code>2023005678</code> (selesai diantar).</p>
+          <div class="field">
+            <label for="dTanggal">Tanggal kirim</label>
+            <input type="date" id="dTanggal" v-model="form.tanggal" :class="{ invalid: errors.tanggal }">
+            <small><button type="button" class="link-aksi" @click="form.tanggal = hariIni()">Pakai tanggal hari ini</button></small>
+            <div class="field-err" v-if="errors.tanggal">{{ errors.tanggal }}</div>
+          </div>
 
-    <div id="hasil" aria-live="polite"></div>
-  </main>
+          <div class="field lebar">
+            <label for="dPaket">Paket bahan ajar</label>
+            <select id="dPaket" v-model="form.paket" :class="{ invalid: errors.paket }">
+              <option value="" disabled>Pilih paket</option>
+              <option v-for="p in paketList" :key="p.kode" :value="p.kode">{{ p.kode }} — {{ p.nama }}</option>
+            </select>
+            <div class="field-err" v-if="errors.paket">{{ errors.paket }}</div>
 
-  <!-- data.js harus dimuat SEBELUM script.js -->
-  <script src="js/data.js"></script>
-  <script src="js/script.js"></script>
+            <!-- detail isi paket muncul setelah paket dipilih -->
+            <div class="paket-detail" v-if="paketTerpilih">
+              Isi paket <strong>{{ paketTerpilih.nama }}</strong>:
+              <ul>
+                <li v-for="isi in isiPaketTerpilih" :key="isi.kode">{{ isi.kode }} — {{ isi.judul }}</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="field lebar">
+            <label for="dTotal">Total harga</label>
+            <input type="text" id="dTotal" :value="formatRupiah(form.total)" readonly>
+          </div>
+        </div>
+
+        <div class="form-aksi">
+          <button type="submit" class="btn btn-utama">Simpan DO</button>
+          <button type="button" class="btn btn-sekunder" @click="resetForm">Kosongkan</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- ===== Daftar DO ===== -->
+    <section class="panel" aria-labelledby="judulDaftar">
+      <h2 id="judulDaftar">Daftar Delivery Order ({{ daftarDO.length }})</h2>
+      <div class="tbl-wrap tbl-polos">
+        <table class="tbl-stok">
+          <thead>
+            <tr><th scope="col">No. DO</th><th scope="col">Nama</th><th scope="col">Status</th><th scope="col" class="angka">Total</th><th scope="col">Aksi</th></tr>
+          </thead>
+          <tbody>
+            <tr v-for="d in daftarDO" :key="d.noDO">
+              <td data-label="No. DO">{{ d.noDO }}</td>
+              <td data-label="Nama">{{ d.nama }}</td>
+              <td data-label="Status"><span class="badge" :class="nadaStatus(d.status)">{{ d.status }}</span></td>
+              <td data-label="Total" class="angka">{{ formatRupiah(d.total) }}</td>
+              <td data-label="Aksi"><div class="aksi"><button type="button" class="btn-kecil" @click="lihat(d.noDO)">Lacak</button></div></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+</main>
+
+</div><!-- /#app -->
+
+<!-- urutan: Vue -> logika halaman (data & common.js sudah dimuat di <head>) -->
+<script src="https://cdn.jsdelivr.net/npm/vue@2.7.16/dist/vue.min.js"></script>
+<script src="js/tracking-app.js"></script>
 </body>
 </html>

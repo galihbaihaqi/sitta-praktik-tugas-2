@@ -7,6 +7,10 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/style.css" />
+
+  <!-- data -> fungsi bersama (termasuk penjaga login) -->
+  <script src="js/dataBahanAjar.js"></script>
+  <script src="js/common.js"></script>
 </head>
 
 <!-- class dashboard-page mengaktifkan CSS khusus dashboard -->
@@ -21,7 +25,7 @@
       <!-- Kiri: pengumuman -->
       <div class="topbar-left">
         <span class="topbar-icon" aria-hidden="true">📢</span>
-        <span>Sistem Informasi dan Transaksi Bahan Ajar UT</span>
+        <span>Sistem Informasi Tiras dan Transaksi Bahan Ajar UT</span>
       </div>
 
       <!-- Tengah: pencarian (Enter -> halaman Informasi Bahan Ajar) -->
@@ -38,7 +42,7 @@
           <div class="topbar-avatar" id="topAvatar">A</div>
           <span id="topNama">Pengguna</span>
         </div>
-        <button type="button" class="topbar-logout" onclick="logout()">Keluar</button>
+        <button type="button" class="topbar-logout" data-aksi="logout">Keluar</button>
       </div>
 
     </div>
@@ -53,7 +57,7 @@
         <img
         src="img/Logo UT.jpg"
         alt="Logo Universitas Terbuka"
-        class="brand-logo"></img>
+        class="brand-logo">
         <div class="brand-text">
           <span class="brand-name">Universitas Terbuka</span>
           <span class="brand-sub">Making Higher Education Open to All</span>
@@ -71,8 +75,7 @@
         <!-- Dropdown Laporan -->
         <li class="dropdown" id="dropLaporan">
           <button type="button" class="drop-btn"
-                  aria-haspopup="true" aria-expanded="false"
-                  onclick="toggleDropdown('dropLaporan')">
+                  aria-haspopup="true" aria-expanded="false">
             Laporan &#9662;
           </button>
           <ul class="dropdown-menu">
@@ -138,11 +141,11 @@
       <p class="do-intro">Masukkan nomor Delivery Order untuk melihat status pengiriman bahan ajar.</p>
 
       <div class="do-form" role="search">
-        <input type="text" id="inputDO" inputmode="numeric" autocomplete="off"
-               placeholder="Nomor Delivery Order" aria-label="Nomor Delivery Order" />
+        <input type="text" id="inputDO" autocomplete="off"
+               placeholder="Contoh: DO2025-001" aria-label="Nomor Delivery Order" />
         <button type="button" id="btnCari">Cari</button>
       </div>
-      <p class="do-hint">Contoh nomor untuk uji coba: <code>2025001</code> (diterima), <code>2025002</code> (dikirim), <code>2025003</code> (diproses).</p>
+      <p class="do-hint">Contoh nomor untuk uji coba: <code>DO2025-001</code> (dalam perjalanan), <code>DO2025-002</code> (selesai), <code>DO2025-004</code> (diproses). DO yang dibuat di halaman Tracking juga bisa dicari di sini.</p>
 
       <div id="hasilDO" aria-live="polite"></div>
     </section>
@@ -263,8 +266,10 @@
 
   </main>
 
-  <!-- data.js harus dimuat SEBELUM script.js -->
-  <script src="js/data.js"></script>
-  <script src="js/script.js"></script>
+  <footer class="app-footer">
+    <button type="button" class="link-reset" id="btnSetelUlang">Setel ulang data contoh</button>
+  </footer>
+
+  <script src="js/dashboard.js"></script>
 </body>
 </html>
